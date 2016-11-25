@@ -3,7 +3,7 @@
 清晰灵活简单易用的应用更新库
 
 
- 
+
 
 ![update1](screenshot1.png) ![update2](screenshot2.png)
 ![update3](screenshot3.png) ![update4](screenshot4.png)
@@ -121,13 +121,13 @@ UpdateManager.create(this).setOnFailure(new UpdateAgent.OnFailureListener() {
 
 可在通知栏显示下载进度，当 info.isSilent 为 true 显示
 
-默认进度通知
+默认通知栏进度 
 
 ``` java
 UpdateManager.create(this).setNotifyId(998).check();
 ```
 
-定制进度通知
+定制通知栏进度 
 
 ``` java
 UpdateManager.create(this).setOnNotify(new UpdateAgent.OnProgressListener() {
