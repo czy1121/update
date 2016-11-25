@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="20dp">
+
+    <TextView
+        android:id="@+id/check_update"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/colorAccent"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:text="检查更新"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/check_update_cant_ignore"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/colorAccent"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:text="检查更新 - 不可忽略"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/check_update_force"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/colorAccent"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:text="检查更新 - 强制更新"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/check_update_silent"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/colorAccent"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:text="不提示直接下载新版本"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/check_update_no_newer"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/colorAccent"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:text="检查更新 - 没有新版本"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/clean"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/colorAccent"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:text="清除缓存"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"/>
+</LinearLayout>
