@@ -248,6 +248,7 @@ public class UpdateAgent {
     }
 
     protected void onInstall() {
+
         UpdateUtil.install(mContext, mUpdateFile, mInfo.isForce);
     }
 
