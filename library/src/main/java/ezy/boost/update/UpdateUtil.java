@@ -92,20 +92,22 @@ public class UpdateUtil {
         return !TextUtils.isEmpty(md5) && md5.equals(context.getSharedPreferences(PREFS, 0).getString(PREFS_IGNORE, ""));
     }
 
-    public static void install(Context context) {
+    public static void install(Context context, boolean force) {
         String md5 = context.getSharedPreferences(PREFS, 0).getString(PREFS_UPDATE, "");
         File file = new File(context.getExternalCacheDir(), md5);
         if (UpdateUtil.verify(file)) {
-            install(context, file);
-            // System.exit(0);
+            install(context, file, force);
         }
     }
 
-    public static void install(Context context, File file) {
+    public static void install(Context context, File file, boolean force) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
+        if (force) {
+            System.exit(0);
+        }
     }
 
     public static boolean verify(File file) {

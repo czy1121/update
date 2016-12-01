@@ -43,7 +43,7 @@ public class UpdateManager {
     }
 
     public static void install(Context context) {
-        UpdateUtil.install(context);
+        UpdateUtil.install(context, true);
     }
 
     public static void check(Context context) {

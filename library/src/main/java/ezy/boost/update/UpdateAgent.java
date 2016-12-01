@@ -147,7 +147,7 @@ public class UpdateAgent {
             } else {
                 mUpdateFile = new File(mContext.getExternalCacheDir(), info.md5);
                 if (UpdateUtil.verify(mUpdateFile)) {
-                    UpdateUtil.install(mContext, mUpdateFile);
+                    onInstall();
                 } else if (info.isSilent) {
                     onDownload();
                 } else {
@@ -248,7 +248,7 @@ public class UpdateAgent {
     }
 
     protected void onInstall() {
-        UpdateUtil.install(mContext, mUpdateFile);
+        UpdateUtil.install(mContext, mUpdateFile, mInfo.isForce);
     }
 
 
