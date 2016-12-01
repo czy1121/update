@@ -53,7 +53,8 @@ public class UpdateUtil {
 
     public static void clean(Context context) {
         SharedPreferences sp = context.getSharedPreferences(PREFS, 0);
-        File file = new File(context.getExternalCacheDir(), sp.getString(PREFS_UPDATE, ""));
+        File file = new File(context.getExternalCacheDir(), sp.getString(PREFS_UPDATE, "") + ".apk");
+        UpdateUtil.log("apk ==> " + file.toString());
         if (file.exists()) {
             file.delete();
         }
@@ -94,9 +95,9 @@ public class UpdateUtil {
 
     public static void install(Context context, boolean force) {
         String md5 = context.getSharedPreferences(PREFS, 0).getString(PREFS_UPDATE, "");
-        File file = new File(context.getExternalCacheDir(), md5);
-        if (UpdateUtil.verify(file)) {
-            install(context, file, force);
+        File apk = new File(context.getExternalCacheDir(), md5 + ".apk");
+        if (UpdateUtil.verify(apk, md5)) {
+            install(context, apk, force);
         }
     }
 
@@ -106,17 +107,23 @@ public class UpdateUtil {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
         if (force) {
-
             System.exit(0);
         }
     }
 
-    public static boolean verify(File file) {
-        if (!file.exists()) {
+    public static boolean verify(File apk, String md5) {
+        if (!apk.exists()) {
             return false;
         }
-        String md5 = UpdateUtil.md5(file);
-        return md5 != null && md5.equalsIgnoreCase(file.getName());
+        String _md5 = md5(apk);
+        if (TextUtils.isEmpty(_md5)) {
+            return false;
+        }
+        boolean result = _md5 != null && _md5.equalsIgnoreCase(md5);
+        if (!result) {
+            apk.delete();
+        }
+        return result;
     }
 
 

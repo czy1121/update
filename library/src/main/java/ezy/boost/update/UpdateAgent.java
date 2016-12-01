@@ -55,7 +55,8 @@ public class UpdateAgent {
 
     private Context mContext;
     private String mUrl;
-    private File mUpdateFile;
+    private File mTmpFile;
+    private File mApkFile;
     private boolean mIsManual = false;
     private boolean mIsWifiOnly = false;
 
@@ -145,8 +146,10 @@ public class UpdateAgent {
             } else if (UpdateUtil.isIgnore(mContext, info.md5)) {
                 onFailure(new UpdateError(UpdateError.UPDATE_IGNORED));
             } else {
-                mUpdateFile = new File(mContext.getExternalCacheDir(), info.md5);
-                if (UpdateUtil.verify(mUpdateFile)) {
+                UpdateUtil.setUpdate(mContext, mInfo.md5);
+                mTmpFile = new File(mContext.getExternalCacheDir(), info.md5);
+                mApkFile = new File(mContext.getExternalCacheDir(), info.md5 + ".apk");
+                if (UpdateUtil.verify(mApkFile, mInfo.md5)) {
                     onInstall();
                 } else if (info.isSilent) {
                     onDownload();
@@ -159,8 +162,8 @@ public class UpdateAgent {
     }
 
     public void update() {
-        mUpdateFile = new File(mContext.getExternalCacheDir(), mInfo.md5);
-        if (UpdateUtil.verify(mUpdateFile)) {
+        mApkFile = new File(mContext.getExternalCacheDir(), mInfo.md5 + ".apk");
+        if (UpdateUtil.verify(mApkFile, mInfo.md5)) {
             onInstall();
         } else {
             onDownload();
@@ -195,8 +198,11 @@ public class UpdateAgent {
         }
         if (mError != null) {
             mOnFailureListener.onFailure(mError);
-        } else if (!mInfo.isSilent) {
-            onInstall();
+        } else {
+            mTmpFile.renameTo(mApkFile);
+            if (!mInfo.isSilent) {
+                onInstall();
+            }
         }
 
     }
@@ -243,13 +249,12 @@ public class UpdateAgent {
         if (mOnProgressListener == null) {
             mOnProgressListener = new DialogProgress(mContext);
         }
-        UpdateUtil.setUpdate(mContext, mInfo.md5);
-        new UpdateDownloader(this, mContext, mInfo.url, mUpdateFile).execute();
+        new UpdateDownloader(this, mContext, mInfo.url, mTmpFile).execute();
     }
 
     protected void onInstall() {
 
-        UpdateUtil.install(mContext, mUpdateFile, mInfo.isForce);
+        UpdateUtil.install(mContext, mApkFile, mInfo.isForce);
     }
 
 
