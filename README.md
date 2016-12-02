@@ -16,7 +16,7 @@ repositories {
 } 
 
 dependencies {
-    compile 'com.github.czy1121:update:1.0.1'
+    compile 'com.github.czy1121:update:1.0.2'
 }
 ```
     

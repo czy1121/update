@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         UpdateManager.setDebuggable(true);
+        UpdateManager.setWifiOnly(false);
         UpdateManager.setUrl(mCheckUrl, "yyb");
         UpdateManager.check(this);
         check(false, true, false, false, true, 998);
