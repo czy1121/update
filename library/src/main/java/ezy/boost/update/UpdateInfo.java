@@ -62,7 +62,7 @@ public class UpdateInfo {
         }
         info.isSilent = o.optBoolean("isSilent", false);
         info.isForce = o.optBoolean("isForce", false);
-        info.isAutoInstall = o.optBoolean("isAutoInstall", true);
+        info.isAutoInstall = o.optBoolean("isAutoInstall", !info.isSilent);
         info.isIgnorable = o.optBoolean("isIgnorable", true);
         info.isPatch = o.optBoolean("isPatch", false);
 
