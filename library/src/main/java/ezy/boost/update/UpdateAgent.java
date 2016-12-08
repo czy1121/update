@@ -200,7 +200,7 @@ public class UpdateAgent {
             mOnFailureListener.onFailure(mError);
         } else {
             mTmpFile.renameTo(mApkFile);
-            if (!mInfo.isSilent) {
+            if (mInfo.isAutoInstall) {
                 onInstall();
             }
         }

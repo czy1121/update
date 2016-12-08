@@ -22,10 +22,12 @@ import org.json.JSONObject;
 public class UpdateInfo {
     // 是否有新版本
     public boolean hasUpdate = false;
-    // 是否静默下载：有新版本时不提示直接下载，下次启动时安装
+    // 是否静默下载：有新版本时不提示直接下载
     public boolean isSilent = false;
     // 是否强制安装：不安装无法使用app
     public boolean isForce = false;
+    // 是否下载完成后自动安装
+    public boolean isAutoInstall = true;
     // 是否可忽略该版本
     public boolean isIgnorable = true;
     // 是否是增量补丁包
@@ -60,6 +62,7 @@ public class UpdateInfo {
         }
         info.isSilent = o.optBoolean("isSilent", false);
         info.isForce = o.optBoolean("isForce", false);
+        info.isAutoInstall = o.optBoolean("isAutoInstall", true);
         info.isIgnorable = o.optBoolean("isIgnorable", true);
         info.isPatch = o.optBoolean("isPatch", false);
 
