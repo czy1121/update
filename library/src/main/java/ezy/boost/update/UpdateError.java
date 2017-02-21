@@ -60,7 +60,8 @@ public class UpdateError extends Throwable {
     public static final int CHECK_NO_WIFI = 2002;
     public static final int CHECK_NO_NETWORK = 2003;
     public static final int CHECK_NETWORK_IO = 2004;
-    public static final int CHECK_PARSE = 2005;
+    public static final int CHECK_HTTP_STATUS = 2005;
+    public static final int CHECK_PARSE = 2006;
 
 
     public static final int DOWNLOAD_UNKNOWN = 3001;
@@ -84,6 +85,7 @@ public class UpdateError extends Throwable {
         messages.append(CHECK_NO_WIFI, "查询更新失败：没有 WIFI");
         messages.append(CHECK_NO_NETWORK, "查询更新失败：没有网络");
         messages.append(CHECK_NETWORK_IO, "查询更新失败：网络异常");
+        messages.append(CHECK_HTTP_STATUS, "查询更新失败：错误的HTTP状态");
         messages.append(CHECK_PARSE, "查询更新失败：解析错误");
 
         messages.append(DOWNLOAD_UNKNOWN, "下载失败：未知错误");

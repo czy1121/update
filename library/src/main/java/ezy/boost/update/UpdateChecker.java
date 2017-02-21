@@ -38,6 +38,8 @@ class UpdateChecker extends AsyncTask<Void, Integer, Void> {
             connection.connect();
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 mAgent.parse(UpdateUtil.readString(connection.getInputStream()));
+            } else {
+                mAgent.setError(new UpdateError(UpdateError.CHECK_HTTP_STATUS, "" + connection.getResponseCode()));
             }
         } catch (IOException e) {
             e.printStackTrace();

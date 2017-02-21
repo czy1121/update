@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "com.github.czy1121.update.app"
@@ -25,7 +25,7 @@ repositories {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':library')
-    compile 'com.android.support:appcompat-v7:24.+'
-    compile 'com.android.support:gridlayout-v7:24.+'
-    compile 'com.android.support:design:24.+'
+    compile 'com.android.support:appcompat-v7:25.+'
+    compile 'com.android.support:gridlayout-v7:25.+'
+    compile 'com.android.support:design:25.+'
 }
