@@ -5,7 +5,7 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        applicationId "com.github.czy1121.update.app"
+        applicationId "ezy.demo.update"
         minSdkVersion 16
         targetSdkVersion 24
         versionCode 1
