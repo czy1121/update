@@ -21,8 +21,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
 
-import com.github.czy1121.update.app.R;
-
 import ezy.boost.update.UpdateAgent;
 import ezy.boost.update.UpdateInfo;
 import ezy.boost.update.UpdateManager;
@@ -30,6 +28,7 @@ import ezy.boost.update.UpdateUtil;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
 
     String mCheckUrl = "http://client.waimai.baidu.com/message/updatetag";
 

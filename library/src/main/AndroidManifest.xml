@@ -4,7 +4,7 @@
     <application>
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="ezy.boost.update.UpdateFileProvider"
             android:authorities="${applicationId}.updatefileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

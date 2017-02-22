@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 group='com.github.czy1121'
-version='1.0.4'
+version='1.0.5'
 archivesBaseName='update'
 
 android {
