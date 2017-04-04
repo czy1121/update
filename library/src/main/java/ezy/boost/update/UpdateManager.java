@@ -17,6 +17,7 @@
 package ezy.boost.update;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -70,11 +71,15 @@ public class UpdateManager {
         private boolean mIsManual;
         private boolean mIsWifiOnly;
         private int mNotifyId = 0;
-        private UpdateAgent.OnProgressListener mOnNotifyListener;
-        private UpdateAgent.OnProgressListener mOnProgressListener;
-        private UpdateAgent.OnPromptListener mOnPromptListener;
-        private UpdateAgent.OnFailureListener mOnFailureListener;
-        private UpdateAgent.InfoParser mParser;
+
+        private OnDownloadListener mOnNotificationDownloadListener;
+        private OnDownloadListener mOnDownloadListener;
+        private IUpdatePrompter mPrompter;
+        private OnFailureListener mOnFailureListener;
+
+        private IUpdateParser mParser;
+        private IUpdateChecker mChecker;
+        private IUpdateDownloader mDownloader;
 
         public Builder(Context context) {
             mContext = context;
@@ -100,27 +105,35 @@ public class UpdateManager {
             return this;
         }
 
-        public Builder setParser(UpdateAgent.InfoParser parser) {
+        public Builder setParser(@NonNull IUpdateParser parser) {
             mParser = parser;
             return this;
         }
-
-        public Builder setOnNotify(UpdateAgent.OnProgressListener listener) {
-            mOnNotifyListener = listener;
+        public Builder setChecker(@NonNull IUpdateChecker checker) {
+            mChecker = checker;
+            return this;
+        }
+        public Builder setDownloader(@NonNull IUpdateDownloader downloader) {
+            mDownloader = downloader;
             return this;
         }
 
-        public Builder setOnProgress(UpdateAgent.OnProgressListener listener) {
-            mOnProgressListener = listener;
+        public Builder setPrompter(@NonNull IUpdatePrompter prompter) {
+            mPrompter = prompter;
             return this;
         }
 
-        public Builder setOnPrompt(UpdateAgent.OnPromptListener listener) {
-            mOnPromptListener = listener;
+        public Builder setOnNotificationDownloadListener(@NonNull OnDownloadListener listener) {
+            mOnNotificationDownloadListener = listener;
             return this;
         }
 
-        public Builder setOnFailure(UpdateAgent.OnFailureListener listener) {
+        public Builder setOnDownloadListener(@NonNull OnDownloadListener listener) {
+            mOnDownloadListener = listener;
+            return this;
+        }
+
+        public Builder setOnFailureListener(@NonNull OnFailureListener listener) {
             mOnFailureListener = listener;
             return this;
         }
@@ -138,16 +151,28 @@ public class UpdateManager {
                 mUrl = UpdateUtil.toCheckUrl(mContext, sUrl, sChannel);
             }
 
-            UpdateAgent agent = new UpdateAgent(mContext, mUrl, mIsManual, mIsWifiOnly);
-            agent.setInfoParser(mParser);
-            if (mOnNotifyListener != null) {
-                agent.setNotifyListener(mOnNotifyListener);
-            } else if (mNotifyId > 0) {
-                agent.setNotifyListener(new UpdateAgent.NotificationProgress(mContext, mNotifyId));
+            UpdateAgent agent = new UpdateAgent(mContext, mUrl, mIsManual, mIsWifiOnly, mNotifyId);
+            if (mOnNotificationDownloadListener != null) {
+                agent.setOnNotificationDownloadListener(mOnNotificationDownloadListener);
             }
-            agent.setFailureListener(mOnFailureListener);
-            agent.setPromptListener(mOnPromptListener);
-            agent.setProgressListener(mOnProgressListener);
+            if (mOnDownloadListener != null) {
+                agent.setOnDownloadListener(mOnDownloadListener);
+            }
+            if (mOnFailureListener != null) {
+                agent.setOnFailureListener(mOnFailureListener);
+            }
+            if (mChecker != null) {
+                agent.setChecker(mChecker);
+            }
+            if (mParser != null) {
+                agent.setParser(mParser);
+            }
+            if (mDownloader != null) {
+                agent.setDownloader(mDownloader);
+            }
+            if (mPrompter != null) {
+                agent.setPrompter(mPrompter);
+            }
             agent.check();
         }
     }

@@ -30,8 +30,8 @@ public class UpdateInfo {
     public boolean isAutoInstall = true;
     // 是否可忽略该版本
     public boolean isIgnorable = true;
-    // 是否是增量补丁包
-    public boolean isPatch = false;
+    // 一天内最大提示次数，<1时不限
+    public int maxTimes = 0;
 
     public int versionCode;
     public String versionName;
@@ -41,10 +41,6 @@ public class UpdateInfo {
     public String url;
     public String md5;
     public long size;
-
-    public String patchUrl;
-    public String patchMd5;
-    public long patchSize;
 
     public static UpdateInfo parse(String s) throws JSONException {
         JSONObject o = new JSONObject(s);
@@ -64,7 +60,6 @@ public class UpdateInfo {
         info.isForce = o.optBoolean("isForce", false);
         info.isAutoInstall = o.optBoolean("isAutoInstall", !info.isSilent);
         info.isIgnorable = o.optBoolean("isIgnorable", true);
-        info.isPatch = o.optBoolean("isPatch", false);
 
         info.versionCode = o.optInt("versionCode", 0);
         info.versionName = o.optString("versionName");
@@ -74,12 +69,6 @@ public class UpdateInfo {
         info.md5 = o.optString("md5");
         info.size = o.optLong("size", 0);
 
-        if (!info.isPatch) {
-            return info;
-        }
-        info.patchUrl = o.optString("patchUrl");
-        info.patchMd5 = o.optString("patchMd5");
-        info.patchSize = o.optLong("patchSize", 0);
         return info;
     }
 }

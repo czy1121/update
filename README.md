@@ -3,12 +3,24 @@
 清晰灵活简单易用的应用更新库
 
 
-
+- 支持断点续传
+- 支持静默下载：有新版本时不提示直接下载
+- 支持强制安装：不安装无法使用app
+- 支持下载完成后自动安装
+- 支持可忽略版本
+- 支持app启动时强制安装下载好了的更新包
+- 支持自定义解析服务器返回的数据
+- 支持自定义查询/下载
+- 支持自定义提示对话框/下载进度对话框
+- 支持通知栏进度显示
+- 适配 Android 7.0 FileProvider
 
 ![update1](screenshot1.png) ![update2](screenshot2.png)
 ![update3](screenshot3.png) ![update4](screenshot4.png)
 
 ## Gradle
+
+[![](https://jitpack.io/v/czy1121/update.svg)](https://jitpack.io/#czy1121/update)
 
 ``` groovy
 repositories { 
@@ -16,7 +28,7 @@ repositories {
 } 
 
 dependencies {
-    compile 'com.github.czy1121:update:1.0.5'
+    compile 'com.github.czy1121:update:1.1.0'
 }
 ```
     
@@ -41,7 +53,16 @@ UpdateManager.check(context);
 ``` java 
 // 在设置界面点击检查更新
 UpdateManager.checkManual(context);
-``` 
+```
+
+``` java
+// 如果有已经下载好了的更新包就强制安装，可以在app启动时调用
+UpdateManager.install(context);
+```
+
+假设，包名是`ezy.demo.update`，版本号为`123`
+传入地址 `http://example.com/check`，传入渠道 `yyb`
+那请求的url是 `http://example.com/check?package=ezy.demo.update&version=123&channel=yyb`
 
 **设置请求url**
 
@@ -67,8 +88,6 @@ public class UpdateInfo {
     public boolean isAutoInstall = true;
     // 是否可忽略该版本
     public boolean isIgnorable = true;
-    // 是否是增量补丁包，暂不支持
-    public boolean isPatch = false;
     
     public int versionCode;
     public String versionName;
@@ -77,17 +96,14 @@ public class UpdateInfo {
     public String url;
     public String md5;
     public long size;
-    
-    public String patchUrl;
-    public String patchMd5;
-    public long patchSize;
 }
+
 ```
 
 可以定制解析过程
 
 ``` java
-UpdateManager.create(this).setUrl(mCheckUrl).setParser(new UpdateAgent.InfoParser() {
+UpdateManager.create(this).setUrl(mCheckUrl).setParser(new IUpdateParser() {
     @Override
     public UpdateInfo parse(String source) throws Exception {
         UpdateInfo info = new UpdateInfo(); 
@@ -97,13 +113,54 @@ UpdateManager.create(this).setUrl(mCheckUrl).setParser(new UpdateAgent.InfoParse
 }).check();
 ```
 
+**定制查询**
+
+``` java
+
+UpdateManager.create(this).setUrl(mCheckUrl).setChecker(new IUpdateChecker() {
+    @Override
+    public void check(ICheckAgent agent, String url) {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestProperty("Accept", "application/json");
+            connection.connect();
+            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                agent.setInfo(UpdateUtil.readString(connection.getInputStream()));
+            } else {
+                agent.setError(new UpdateError(UpdateError.CHECK_HTTP_STATUS, "" + connection.getResponseCode()));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            agent.setError(new UpdateError(UpdateError.CHECK_NETWORK_IO));
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+}).check();
+```
+
+**定制下载**
+
+``` java
+UpdateManager.create(this).setUrl(mCheckUrl).setDownloader(new IUpdateDownloader() {
+    @Override
+    public void download(IDownloadAgent agent, String url, File temp) {
+        new UpdateDownloader(agent, context, url, temp).execute();
+    }
+}).check();
+
+```
+
 **更新版本对话框**
 
 ``` java
-UpdateManager.create(this).setOnPrompt(new UpdateAgent.OnPromptListener() {
+UpdateManager.create(this).setPrompter(new IUpdatePrompter() {
     @Override
-    public void onPrompt(UpdateAgent agent) { 
-        // todo : 根据 agent.getInfo() 显示更新版本对话框，具体可参考 UpdateAgent.OnPrompt
+    public void prompt(IUpdateAgent agent) {
+        // todo : 根据 agent.getInfo() 显示更新版本对话框，具体可参考 UpdateAgent.DefaultUpdatePrompter
     }
 }).check();
 ```
@@ -111,7 +168,7 @@ UpdateManager.create(this).setOnPrompt(new UpdateAgent.OnPromptListener() {
 **没有新版本或出错**
 
 ``` java
-UpdateManager.create(this).setOnFailure(new UpdateAgent.OnFailureListener() {
+UpdateManager.create(this).setOnFailure(new OnFailureListener() {
     @Override
     public void onFailure(UpdateError error) {  
         Toast.makeText(mContext, error.toString(), Toast.LENGTH_LONG).show();
@@ -132,7 +189,7 @@ UpdateManager.create(this).setNotifyId(998).check();
 定制通知栏进度 
 
 ``` java
-UpdateManager.create(this).setOnNotify(new UpdateAgent.OnProgressListener() {
+UpdateManager.create(this).setOnNotificationDownloadListener(new OnDownloadListener() {
     @Override
     public void onStart() {
         // todo: start
@@ -153,7 +210,7 @@ UpdateManager.create(this).setOnNotify(new UpdateAgent.OnProgressListener() {
 定制下载进度的对话框，当 info.isSilent 为 false 显示
 
 ``` java
-UpdateManager.create(this).setOnProgress(new UpdateAgent.OnProgressListener() {
+UpdateManager.create(this).setOnDownloadListener(new OnDownloadListener() {
     @Override
     public void onStart() {
         // todo: start

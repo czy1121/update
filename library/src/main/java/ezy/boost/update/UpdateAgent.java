@@ -16,42 +16,26 @@
 
 package ezy.boost.update;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.support.v4.app.NotificationCompat;
+import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.NotificationCompat;
 import android.text.format.Formatter;
 import android.text.method.ScrollingMovementMethod;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-public class UpdateAgent {
-
-    public interface OnProgressListener {
-
-        void onStart();
-
-        void onProgress(int progress);
-
-        void onFinish();
-    }
-
-    public interface OnFailureListener {
-        void onFailure(UpdateError error);
-    }
-
-    public interface OnPromptListener {
-        void onPrompt(UpdateAgent agent);
-    }
-
-    public interface InfoParser {
-        UpdateInfo parse(String source) throws Exception;
-    }
+class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
 
     private Context mContext;
     private String mUrl;
@@ -63,234 +47,274 @@ public class UpdateAgent {
     private UpdateInfo mInfo;
     private UpdateError mError = null;
 
-    private InfoParser mParser;
+    private IUpdateParser mParser = new DefaultUpdateParser();
+    private IUpdateChecker mChecker = new DefaultUpdateChecker();
+    private IUpdateDownloader mDownloader;
+    private IUpdatePrompter mPrompter;
 
     private OnFailureListener mOnFailureListener;
-    private OnPromptListener mOnPromptListener;
-    private OnProgressListener mOnProgressListener;
-    private OnProgressListener mOnNotificationListener;
 
-    public UpdateAgent(Context context, String url, boolean isManual, boolean isWifiOnly) {
-        mContext = context;
+    private OnDownloadListener mOnDownloadListener;
+    private OnDownloadListener mOnNotificationDownloadListener;
+
+    public UpdateAgent(Context context, String url, boolean isManual, boolean isWifiOnly, int notifyId) {
+        mContext = context.getApplicationContext();
         mUrl = url;
         mIsManual = isManual;
         mIsWifiOnly = isWifiOnly;
-        mOnPromptListener = new OnPrompt(context);
-        mOnFailureListener = new OnFailure(context);
-
-        mParser = new DefaultParser();
+        mDownloader = new DefaultUpdateDownloader(mContext);
+        mPrompter = new DefaultUpdatePrompter(context);
+        mOnFailureListener = new DefaultFailureListener(context);
+        mOnDownloadListener = new DefaultDialogDownloadListener(context);
+        if (notifyId > 0) {
+            mOnNotificationDownloadListener = new DefaultNotificationDownloadListener(mContext, notifyId);
+        } else {
+            mOnNotificationDownloadListener = new DefaultDownloadListener();
+        }
     }
 
-    public String getUrl() {
-        return mUrl;
+
+    public void setParser(IUpdateParser parser) {
+        mParser = parser;
     }
 
-    public UpdateInfo getInfo() {
-        return mInfo;
+    public void setChecker(IUpdateChecker checker) {
+        mChecker = checker;
     }
+
+    public void setDownloader(IUpdateDownloader downloader) {
+        mDownloader = downloader;
+    }
+
+    public void setPrompter(IUpdatePrompter prompter) {
+        mPrompter = prompter;
+    }
+
+    public void setOnNotificationDownloadListener(OnDownloadListener listener) {
+        mOnNotificationDownloadListener = listener;
+    }
+
+    public void setOnDownloadListener(OnDownloadListener listener) {
+        mOnDownloadListener = listener;
+    }
+
+    public void setOnFailureListener(OnFailureListener listener) {
+        mOnFailureListener = listener;
+    }
+
 
     public void setInfo(UpdateInfo info) {
         mInfo = info;
     }
 
-    public UpdateError getError() {
-        return mError;
+    @Override
+    public UpdateInfo getInfo() {
+        return mInfo;
     }
 
-    public void setError(UpdateError error) {
-        mError = error;
-    }
-
-    public void setInfoParser(InfoParser parser) {
-        if (parser != null) {
-            mParser = parser;
-        }
-    }
-
-    public void check() {
-        if (mIsWifiOnly) {
-            if (UpdateUtil.checkWifi(mContext)) {
-                onCheck();
-            } else {
-                onFailure(new UpdateError(UpdateError.CHECK_NO_WIFI));
-            }
-        } else {
-            if (UpdateUtil.checkNetwork(mContext)) {
-                onCheck();
-            } else {
-                onFailure(new UpdateError(UpdateError.CHECK_NO_NETWORK));
-            }
-        }
-    }
-
-    public void parse(String source) {
-
+    @Override
+    public void setInfo(String source) {
         try {
-            setInfo(mParser.parse(source));
+            mInfo = mParser.parse(source);
         } catch (Exception e) {
             e.printStackTrace();
             setError(new UpdateError(UpdateError.CHECK_PARSE));
         }
     }
 
-    public void checkFinish() {
-        UpdateError error = getError();
-        if (error != null) {
-            onFailure(error);
-        } else {
-            UpdateInfo info = getInfo();
-            if (info == null) {
-                onFailure(new UpdateError(UpdateError.CHECK_UNKNOWN));
-            } else if (!info.hasUpdate) {
-                onFailure(new UpdateError(UpdateError.UPDATE_NO_NEWER));
-            } else if (UpdateUtil.isIgnore(mContext, info.md5)) {
-                onFailure(new UpdateError(UpdateError.UPDATE_IGNORED));
-            } else {
-                UpdateUtil.setUpdate(mContext, mInfo.md5);
-                mTmpFile = new File(mContext.getExternalCacheDir(), info.md5);
-                mApkFile = new File(mContext.getExternalCacheDir(), info.md5 + ".apk");
-                if (UpdateUtil.verify(mApkFile, mInfo.md5)) {
-                    onInstall();
-                } else if (info.isSilent) {
-                    onDownload();
-                } else {
-                    mOnPromptListener.onPrompt(this);
-                }
-            }
-        }
-
+    @Override
+    public void setError(UpdateError error) {
+        mError = error;
     }
 
+    @Override
     public void update() {
         mApkFile = new File(mContext.getExternalCacheDir(), mInfo.md5 + ".apk");
         if (UpdateUtil.verify(mApkFile, mInfo.md5)) {
-            onInstall();
+            doInstall();
         } else {
-            onDownload();
+            doDownload();
         }
     }
 
+    @Override
     public void ignore() {
         UpdateUtil.setIgnore(mContext, getInfo().md5);
     }
 
-    public void downloadStart() {
+    @Override
+    public void onStart() {
         if (mInfo.isSilent) {
-            mOnNotificationListener.onStart();
+            mOnNotificationDownloadListener.onStart();
         } else {
-            mOnProgressListener.onStart();
+            mOnDownloadListener.onStart();
         }
     }
 
-    public void downloadProgress(int progress) {
+    @Override
+    public void onProgress(int progress) {
         if (mInfo.isSilent) {
-            mOnNotificationListener.onProgress(progress);
+            mOnNotificationDownloadListener.onProgress(progress);
         } else {
-            mOnProgressListener.onProgress(progress);
+            mOnDownloadListener.onProgress(progress);
         }
     }
 
-    public void downloadFinish() {
+    @Override
+    public void onFinish() {
         if (mInfo.isSilent) {
-            mOnNotificationListener.onFinish();
+            mOnNotificationDownloadListener.onFinish();
         } else {
-            mOnProgressListener.onFinish();
+            mOnDownloadListener.onFinish();
         }
         if (mError != null) {
             mOnFailureListener.onFailure(mError);
         } else {
             mTmpFile.renameTo(mApkFile);
             if (mInfo.isAutoInstall) {
-                onInstall();
+                doInstall();
             }
         }
 
     }
 
-    public void setNotifyListener(OnProgressListener listener) {
-        if (listener != null) {
-            mOnNotificationListener = listener;
-        }
-    }
 
-    public void setProgressListener(OnProgressListener listener) {
-        if (listener != null) {
-            mOnProgressListener = listener;
-        }
-    }
-
-    public void setPromptListener(OnPromptListener prompt) {
-        if (prompt != null) {
-            mOnPromptListener = prompt;
-        }
-    }
-
-    public void setFailureListener(OnFailureListener failure) {
-        if (failure != null) {
-            mOnFailureListener = failure;
+    public void check() {
+        if (mIsWifiOnly) {
+            if (UpdateUtil.checkWifi(mContext)) {
+                doCheck();
+            } else {
+                doFailure(new UpdateError(UpdateError.CHECK_NO_WIFI));
+            }
+        } else {
+            if (UpdateUtil.checkNetwork(mContext)) {
+                doCheck();
+            } else {
+                doFailure(new UpdateError(UpdateError.CHECK_NO_NETWORK));
+            }
         }
     }
 
 
-    private void onFailure(UpdateError error) {
+    void doCheck() {
+        new AsyncTask<String, Void, Void>() {
+            @Override
+            protected Void doInBackground(String... params) {
+                mChecker.check(UpdateAgent.this, mUrl);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                doCheckFinish();
+            }
+        }.execute();
+    }
+
+    void doCheckFinish() {
+        UpdateError error = mError;
+        if (error != null) {
+            doFailure(error);
+        } else {
+            UpdateInfo info = getInfo();
+            if (info == null) {
+                doFailure(new UpdateError(UpdateError.CHECK_UNKNOWN));
+            } else if (!info.hasUpdate) {
+                doFailure(new UpdateError(UpdateError.UPDATE_NO_NEWER));
+            } else if (UpdateUtil.isIgnore(mContext, info.md5)) {
+                doFailure(new UpdateError(UpdateError.UPDATE_IGNORED));
+            } else {
+                UpdateUtil.setUpdate(mContext, mInfo.md5);
+                mTmpFile = new File(mContext.getExternalCacheDir(), info.md5);
+                mApkFile = new File(mContext.getExternalCacheDir(), info.md5 + ".apk");
+                if (UpdateUtil.verify(mApkFile, mInfo.md5)) {
+                    doInstall();
+                } else if (info.isSilent) {
+                    doDownload();
+                } else {
+                    doPrompt();
+                }
+            }
+        }
+
+    }
+
+    void doPrompt() {
+        mPrompter.prompt(this);
+    }
+
+    void doDownload() {
+        mDownloader.download(this, mInfo.url, mTmpFile);
+    }
+
+    void doInstall() {
+        UpdateUtil.install(mContext, mApkFile, mInfo.isForce);
+    }
+
+    void doFailure(UpdateError error) {
         if (mIsManual || error.isError()) {
             mOnFailureListener.onFailure(error);
         }
     }
 
-    protected void onCheck() {
-        new UpdateChecker(this).execute();
-    }
+    private static class DefaultUpdateDownloader implements IUpdateDownloader {
+        final Context mContext;
 
-    protected void onDownload() {
-        if (mOnNotificationListener == null) {
-            mOnNotificationListener = new EmptyProgress();
+        public DefaultUpdateDownloader(Context context) {
+            mContext = context;
         }
-        if (mOnProgressListener == null) {
-            mOnProgressListener = new DialogProgress(mContext);
+
+        @Override
+        public void download(IDownloadAgent agent, String url, File temp) {
+            new UpdateDownloader(agent, mContext, url, temp).execute();
         }
-        new UpdateDownloader(this, mContext, mInfo.url, mTmpFile).execute();
     }
 
-    protected void onInstall() {
+    private static class DefaultUpdateChecker implements IUpdateChecker {
 
-        UpdateUtil.install(mContext, mApkFile, mInfo.isForce);
+        @Override
+        public void check(ICheckAgent agent, String url) {
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) new URL(url).openConnection();
+                connection.setRequestProperty("Accept", "application/json");
+                connection.connect();
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    agent.setInfo(UpdateUtil.readString(connection.getInputStream()));
+                } else {
+                    agent.setError(new UpdateError(UpdateError.CHECK_HTTP_STATUS, "" + connection.getResponseCode()));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                agent.setError(new UpdateError(UpdateError.CHECK_NETWORK_IO));
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        }
     }
 
-
-    private static class DefaultParser implements InfoParser {
+    private static class DefaultUpdateParser implements IUpdateParser {
         @Override
         public UpdateInfo parse(String source) throws Exception {
             return UpdateInfo.parse(source);
         }
     }
 
-
-    private static class OnFailure implements OnFailureListener {
+    private static class DefaultUpdatePrompter implements IUpdatePrompter {
 
         private Context mContext;
 
-        public OnFailure(Context context) {
+        public DefaultUpdatePrompter(Context context) {
             mContext = context;
         }
 
         @Override
-        public void onFailure(UpdateError error) {
-            UpdateUtil.log(error.toString());
-            Toast.makeText(mContext, error.toString(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private static class OnPrompt implements UpdateAgent.OnPromptListener {
-
-        private Context mContext;
-
-        public OnPrompt(Context context) {
-            mContext = context;
-        }
-
-        @Override
-        public void onPrompt(UpdateAgent agent) {
+        public void prompt(IUpdateAgent agent) {
+            if (mContext instanceof Activity && ((Activity) mContext).isFinishing()) {
+                return;
+            }
             final UpdateInfo info = agent.getInfo();
             String size = Formatter.formatShortFileSize(mContext, info.size);
             String content = String.format("最新版本：%1$s\n新版本大小：%2$s\n\n更新内容\n%3$s", info.versionName, size, info.updateContent);
@@ -312,7 +336,7 @@ public class UpdateAgent {
             dialog.setView(tv, (int) (25 * density), (int) (15 * density), (int) (25 * density), 0);
 
 
-            DialogInterface.OnClickListener listener = new OnPromptClick(agent, true);
+            DialogInterface.OnClickListener listener = new DefaultPromptClickListener(agent, true);
 
             if (info.isForce) {
                 tv.setText("您需要更新应用才能继续使用\n\n" + content);
@@ -329,39 +353,40 @@ public class UpdateAgent {
         }
     }
 
-    public static class EmptyProgress implements UpdateAgent.OnProgressListener {
-        @Override
-        public void onStart() {
+    private static class DefaultFailureListener implements OnFailureListener {
 
+        private Context mContext;
+
+        public DefaultFailureListener(Context context) {
+            mContext = context;
         }
 
         @Override
-        public void onFinish() {
-
-        }
-
-        @Override
-        public void onProgress(int progress) {
-
+        public void onFailure(UpdateError error) {
+            UpdateUtil.log(error.toString());
+            Toast.makeText(mContext, error.toString(), Toast.LENGTH_LONG).show();
         }
     }
 
-    public static class DialogProgress implements UpdateAgent.OnProgressListener {
+    private static class DefaultDialogDownloadListener implements OnDownloadListener {
         private Context mContext;
         private ProgressDialog mDialog;
 
-        public DialogProgress(Context context) {
+        public DefaultDialogDownloadListener(Context context) {
             mContext = context;
         }
 
         @Override
         public void onStart() {
-            mDialog = new ProgressDialog(mContext);
-            mDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            mDialog.setMessage("下载中...");
-            mDialog.setIndeterminate(false);
-            mDialog.setCancelable(false);
-            mDialog.show();
+            if (mContext instanceof Activity && !((Activity) mContext).isFinishing()) {
+                ProgressDialog dialog = new ProgressDialog(mContext);
+                dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                dialog.setMessage("下载中...");
+                dialog.setIndeterminate(false);
+                dialog.setCancelable(false);
+                dialog.show();
+                mDialog = dialog;
+            }
         }
 
         @Override
@@ -380,12 +405,12 @@ public class UpdateAgent {
         }
     }
 
-    public static class NotificationProgress implements UpdateAgent.OnProgressListener {
+    private static class DefaultNotificationDownloadListener implements OnDownloadListener {
         private Context mContext;
         private int mNotifyId;
         private NotificationCompat.Builder mBuilder;
 
-        public NotificationProgress(Context context, int notifyId) {
+        public DefaultNotificationDownloadListener(Context context, int notifyId) {
             mContext = context;
             mNotifyId = notifyId;
         }
@@ -424,35 +449,6 @@ public class UpdateAgent {
         public void onFinish() {
             NotificationManager nm = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
             nm.cancel(mNotifyId);
-        }
-    }
-
-    public static class OnPromptClick implements DialogInterface.OnClickListener {
-        private final UpdateAgent mAgent;
-        private final boolean mIsAutoDismiss;
-
-        public OnPromptClick(UpdateAgent agent, boolean isAutoDismiss) {
-            mAgent = agent;
-            mIsAutoDismiss = isAutoDismiss;
-        }
-
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-
-            switch (which) {
-            case DialogInterface.BUTTON_POSITIVE:
-                mAgent.update();
-                break;
-            case DialogInterface.BUTTON_NEUTRAL:
-                mAgent.ignore();
-                break;
-            case DialogInterface.BUTTON_NEGATIVE:
-                // not now
-                break;
-            }
-            if (mIsAutoDismiss) {
-                dialog.dismiss();
-            }
         }
     }
 }

@@ -41,7 +41,7 @@ class UpdateDownloader extends AsyncTask<Void, Integer, Long> {
     private final static int EVENT_COMPLETE = 3;
 
     private Context mContext;
-    private UpdateAgent mAgent;
+    private IDownloadAgent mAgent;
     private String mUrl;
     private File mTemp;
 
@@ -55,7 +55,7 @@ class UpdateDownloader extends AsyncTask<Void, Integer, Long> {
 
     private HttpURLConnection mConnection;
 
-    public UpdateDownloader(UpdateAgent agent, Context context, String url, File file) {
+    public UpdateDownloader(IDownloadAgent agent, Context context, String url, File file) {
         super();
         mContext = context;
         mAgent = agent;
@@ -104,7 +104,7 @@ class UpdateDownloader extends AsyncTask<Void, Integer, Long> {
     protected void onProgressUpdate(Integer... progress) {
         switch (progress[0]) {
         case EVENT_START:
-            mAgent.downloadStart();
+            mAgent.onStart();
             break;
         case EVENT_PROGRESS:
             long now = System.currentTimeMillis();
@@ -114,14 +114,14 @@ class UpdateDownloader extends AsyncTask<Void, Integer, Long> {
             mTimeLast = now;
             mTimeUsed = now - mTimeBegin;
             mSpeed = mBytesLoaded * 1000 / mTimeUsed;
-            mAgent.downloadProgress((int) (this.getBytesLoaded() * 100 / mBytesTotal));
+            mAgent.onProgress((int) (this.getBytesLoaded() * 100 / mBytesTotal));
             break;
         }
     }
 
     @Override
     protected void onPostExecute(Long result) {
-        mAgent.downloadFinish();
+        mAgent.onFinish();
     }
 
     void checkNetwork() throws UpdateError {

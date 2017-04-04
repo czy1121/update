@@ -42,8 +42,8 @@ import java.security.MessageDigest;
 public class UpdateUtil {
     private static final String TAG = "ezy.update";
     private static final String PREFS = "ezy.update.prefs";
-    private static final String PREFS_IGNORE = "ezy.update.prefs.ignore";
-    private static final String PREFS_UPDATE = "ezy.update.prefs.update";
+    private static final String KEY_IGNORE = "ezy.update.prefs.ignore";
+    private static final String KEY_UPDATE = "ezy.update.prefs.update";
 
     static boolean DEBUG = true;
 
@@ -55,7 +55,7 @@ public class UpdateUtil {
 
     public static void clean(Context context) {
         SharedPreferences sp = context.getSharedPreferences(PREFS, 0);
-        File file = new File(context.getExternalCacheDir(), sp.getString(PREFS_UPDATE, "") + ".apk");
+        File file = new File(context.getExternalCacheDir(), sp.getString(KEY_UPDATE, "") + ".apk");
         UpdateUtil.log("apk ==> " + file.toString());
         if (file.exists()) {
             file.delete();
@@ -68,7 +68,7 @@ public class UpdateUtil {
             return;
         }
         SharedPreferences sp = context.getSharedPreferences(PREFS, 0);
-        String old = sp.getString(PREFS_UPDATE, "");
+        String old = sp.getString(KEY_UPDATE, "");
         if (md5.equals(old)) {
             return;
         }
@@ -76,7 +76,7 @@ public class UpdateUtil {
         if (oldFile.exists()) {
             oldFile.delete();
         }
-        sp.edit().putString(PREFS_UPDATE, md5).apply();
+        sp.edit().putString(KEY_UPDATE, md5).apply();
         File file = new File(context.getExternalCacheDir(), md5);
         if (!file.exists()) {
             try {
@@ -88,15 +88,15 @@ public class UpdateUtil {
     }
 
     public static void setIgnore(Context context, String md5) {
-        context.getSharedPreferences(PREFS, 0).edit().putString(PREFS_IGNORE, md5).apply();
+        context.getSharedPreferences(PREFS, 0).edit().putString(KEY_IGNORE, md5).apply();
     }
 
     public static boolean isIgnore(Context context, String md5) {
-        return !TextUtils.isEmpty(md5) && md5.equals(context.getSharedPreferences(PREFS, 0).getString(PREFS_IGNORE, ""));
+        return !TextUtils.isEmpty(md5) && md5.equals(context.getSharedPreferences(PREFS, 0).getString(KEY_IGNORE, ""));
     }
 
     public static void install(Context context, boolean force) {
-        String md5 = context.getSharedPreferences(PREFS, 0).getString(PREFS_UPDATE, "");
+        String md5 = context.getSharedPreferences(PREFS, 0).getString(KEY_UPDATE, "");
         File apk = new File(context.getExternalCacheDir(), md5 + ".apk");
         if (UpdateUtil.verify(apk, md5)) {
             install(context, apk, force);
