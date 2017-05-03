@@ -31,9 +31,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
 
@@ -48,7 +45,7 @@ class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
     private UpdateError mError = null;
 
     private IUpdateParser mParser = new DefaultUpdateParser();
-    private IUpdateChecker mChecker = new DefaultUpdateChecker();
+    private IUpdateChecker mChecker;
     private IUpdateDownloader mDownloader;
     private IUpdatePrompter mPrompter;
 
@@ -200,6 +197,9 @@ class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
         new AsyncTask<String, Void, Void>() {
             @Override
             protected Void doInBackground(String... params) {
+                if (mChecker == null) {
+                    mChecker = new DefaultUpdateChecker();
+                }
                 mChecker.check(UpdateAgent.this, mUrl);
                 return null;
             }
@@ -267,31 +267,6 @@ class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
         @Override
         public void download(IDownloadAgent agent, String url, File temp) {
             new UpdateDownloader(agent, mContext, url, temp).execute();
-        }
-    }
-
-    private static class DefaultUpdateChecker implements IUpdateChecker {
-
-        @Override
-        public void check(ICheckAgent agent, String url) {
-            HttpURLConnection connection = null;
-            try {
-                connection = (HttpURLConnection) new URL(url).openConnection();
-                connection.setRequestProperty("Accept", "application/json");
-                connection.connect();
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    agent.setInfo(UpdateUtil.readString(connection.getInputStream()));
-                } else {
-                    agent.setError(new UpdateError(UpdateError.CHECK_HTTP_STATUS, "" + connection.getResponseCode()));
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                agent.setError(new UpdateError(UpdateError.CHECK_NETWORK_IO));
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
         }
     }
 

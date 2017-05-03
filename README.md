@@ -9,6 +9,7 @@
 - 支持下载完成后自动安装
 - 支持可忽略版本
 - 支持app启动时强制安装下载好了的更新包
+- 支持POST请求
 - 支持自定义解析服务器返回的数据
 - 支持自定义查询/下载
 - 支持自定义提示对话框/下载进度对话框
@@ -28,7 +29,7 @@ repositories {
 } 
 
 dependencies {
-    compile 'com.github.czy1121:update:1.1.0'
+    compile 'com.github.czy1121:update:1.1.1'
 }
 ```
     
@@ -70,6 +71,12 @@ UpdateManager.install(context);
 
 ``` java
 UpdateManager.create(this).setUrl(mCheckUrl).check();
+```
+
+**发送POST请求**
+
+``` java
+UpdateManager.create(this).setUrl(mCheckUrl).setPostData("param=abc&param2=xyz").check();
 ```
 
 **解析查询结果**

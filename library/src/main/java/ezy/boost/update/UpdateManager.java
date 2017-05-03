@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 
 public class UpdateManager {
@@ -68,6 +69,7 @@ public class UpdateManager {
     public static class Builder {
         private Context mContext;
         private String mUrl;
+        private byte[] mPostData;
         private boolean mIsManual;
         private boolean mIsWifiOnly;
         private int mNotifyId = 0;
@@ -87,6 +89,14 @@ public class UpdateManager {
 
         public Builder setUrl(String url) {
             mUrl = url;
+            return this;
+        }
+        public Builder setPostData(@NonNull byte[] data) {
+            mPostData = data;
+            return this;
+        }
+        public Builder setPostData(@NonNull String data) {
+            mPostData = data.getBytes(Charset.forName("UTF-8"));
             return this;
         }
 
@@ -163,6 +173,8 @@ public class UpdateManager {
             }
             if (mChecker != null) {
                 agent.setChecker(mChecker);
+            } else {
+                agent.setChecker(new DefaultUpdateChecker(mPostData));
             }
             if (mParser != null) {
                 agent.setParser(mParser);
