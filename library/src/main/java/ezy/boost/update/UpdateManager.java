@@ -20,7 +20,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import java.io.File;
 import java.nio.charset.Charset;
 
 
@@ -58,11 +57,7 @@ public class UpdateManager {
     }
 
     public static Builder create(Context context) {
-        File file = new File(context.getExternalFilesDir("").getParentFile(), "cache");
-        if (file != null && !file.exists()) {
-            file.mkdirs();
-        }
-        UpdateUtil.log("===>>> " + context.getExternalCacheDir());
+        UpdateUtil.ensureExternalCacheDir(context);
         return new Builder(context).setWifiOnly(sIsWifiOnly);
     }
 
@@ -174,7 +169,7 @@ public class UpdateManager {
             if (mChecker != null) {
                 agent.setChecker(mChecker);
             } else {
-                agent.setChecker(new DefaultUpdateChecker(mPostData));
+                agent.setChecker(new UpdateChecker(mPostData));
             }
             if (mParser != null) {
                 agent.setParser(mParser);

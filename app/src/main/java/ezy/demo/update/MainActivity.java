@@ -18,9 +18,12 @@ package ezy.demo.update;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import ezy.boost.update.ICheckAgent;
+import ezy.boost.update.IUpdateChecker;
 import ezy.boost.update.IUpdateParser;
 import ezy.boost.update.UpdateInfo;
 import ezy.boost.update.UpdateManager;
@@ -55,7 +58,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     void check(boolean isManual, final boolean hasUpdate, final boolean isForce, final boolean isSilent, final boolean isIgnorable, final int
             notifyId) {
-        UpdateManager.create(this).setUrl(mCheckUrl).setManual(isManual).setNotifyId(notifyId).setParser(new IUpdateParser() {
+        UpdateManager.create(this).setChecker(new IUpdateChecker() {
+            @Override
+            public void check(ICheckAgent agent, String url) {
+                Log.e("ezy.update", "checking");
+                agent.setInfo("");
+            }
+        }).setUrl(mCheckUrl).setManual(isManual).setNotifyId(notifyId).setParser(new IUpdateParser() {
             @Override
             public UpdateInfo parse(String source) throws Exception {
                 UpdateInfo info = new UpdateInfo();

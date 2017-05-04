@@ -20,14 +20,14 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class DefaultUpdateChecker implements IUpdateChecker {
+public class UpdateChecker implements IUpdateChecker {
 
     final byte[] mPostData;
 
-    public DefaultUpdateChecker() {
+    public UpdateChecker() {
         mPostData = null;
     }
-    public DefaultUpdateChecker(byte[] data) {
+    public UpdateChecker(byte[] data) {
         mPostData = data;
     }
 

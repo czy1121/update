@@ -177,6 +177,7 @@ class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
 
 
     public void check() {
+        UpdateUtil.log("check");
         if (mIsWifiOnly) {
             if (UpdateUtil.checkWifi(mContext)) {
                 doCheck();
@@ -193,12 +194,13 @@ class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
     }
 
 
+
     void doCheck() {
         new AsyncTask<String, Void, Void>() {
             @Override
             protected Void doInBackground(String... params) {
                 if (mChecker == null) {
-                    mChecker = new DefaultUpdateChecker();
+                    mChecker = new UpdateChecker();
                 }
                 mChecker.check(UpdateAgent.this, mUrl);
                 return null;
@@ -212,6 +214,7 @@ class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
     }
 
     void doCheckFinish() {
+        UpdateUtil.log("check finish");
         UpdateError error = mError;
         if (error != null) {
             doFailure(error);
@@ -224,9 +227,12 @@ class UpdateAgent implements ICheckAgent, IUpdateAgent, IDownloadAgent {
             } else if (UpdateUtil.isIgnore(mContext, info.md5)) {
                 doFailure(new UpdateError(UpdateError.UPDATE_IGNORED));
             } else {
+                UpdateUtil.log("update md5" + mInfo.md5);
+                UpdateUtil.ensureExternalCacheDir(mContext);
                 UpdateUtil.setUpdate(mContext, mInfo.md5);
                 mTmpFile = new File(mContext.getExternalCacheDir(), info.md5);
                 mApkFile = new File(mContext.getExternalCacheDir(), info.md5 + ".apk");
+
                 if (UpdateUtil.verify(mApkFile, mInfo.md5)) {
                     doInstall();
                 } else if (info.isSilent) {

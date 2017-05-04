@@ -70,6 +70,7 @@ public class UpdateUtil {
         SharedPreferences sp = context.getSharedPreferences(PREFS, 0);
         String old = sp.getString(KEY_UPDATE, "");
         if (md5.equals(old)) {
+            UpdateUtil.log("same md5");
             return;
         }
         File oldFile = new File(context.getExternalCacheDir(), old);
@@ -84,6 +85,16 @@ public class UpdateUtil {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public static void ensureExternalCacheDir(Context context) {
+        File file = context.getExternalCacheDir();
+        if (file == null) {
+            file = new File(context.getExternalFilesDir("").getParentFile(), "cache");
+        }
+        if (file != null) {
+            file.mkdirs();
         }
     }
 

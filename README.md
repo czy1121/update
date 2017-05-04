@@ -81,7 +81,7 @@ UpdateManager.create(this).setUrl(mCheckUrl).setPostData("param=abc&param2=xyz")
 
 **解析查询结果**
 
-查询结果需要解析成 UpdateInfo 
+查询结果需要解析成 UpdateInfo
 
 ``` java 
 public class UpdateInfo {
@@ -101,6 +101,8 @@ public class UpdateInfo {
     public String updateContent;
     
     public String url;
+    // md5始终是是url所表示的apk文件内容的md5
+    // 用于防止下载过程中apk内容被修改篡改替换
     public String md5;
     public long size;
 }
