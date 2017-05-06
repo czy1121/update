@@ -101,13 +101,19 @@ public class UpdateInfo {
     public String updateContent;
     
     public String url;
-    // md5始终是是url所表示的apk文件内容的md5
-    // 用于防止下载过程中apk内容被修改篡改替换
     public String md5;
     public long size;
 }
 
 ```
+
+关于md5
+
+1. 有新版本时，url与md5字段为必填
+2. md5始终是是url所表示的**apk文件内容的md5**，不是keystore的md5
+3. md5用于确保安装的是完整正确apk，防止下载过程中apk内容被修改篡改替换
+4. 不知道如何获取文件md5可参考Update.md5或google/baidu
+
 
 可以定制解析过程
 
