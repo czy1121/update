@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="update_ignored">该版本已经被忽略</string>
+    <string name="update_cancelled">下载被取消</string>
+    <string name="update_no_newer">已经是最新版了</string>
+
+    <string name="update_check_no_wifi">查询更新失败：没有 WIFI</string>
+    <string name="update_check_no_network">查询更新失败：没有网络</string>
+    <string name="update_check_network_io">查询更新失败：网络异常</string>
+    <string name="update_check_http_status">查询更新失败：错误的HTTP状态</string>
+
+    <string name="update_download_disk_no_space">下载失败：磁盘空间不足</string>
+    <string name="update_download_disk_io">下载失败：磁盘读写错误</string>
+    <string name="update_download_network_io">下载失败：网络异常</string>
+    <string name="update_download_network_timeout">下载失败：网络超时</string>
+    <string name="update_download_http_status">下载失败：错误的HTTP状态</string>
+    <string name="update_download_incomplete">下载失败：下载不完整</string>
+
+    <string name="update_install_verify">安装失败：校验错误</string>
+
+
+    <string name="update_prompt_title">发现新版本</string>
+    <string name="update_prompt_cancel">取消</string>
+    <string name="update_prompt_ignore">忽略</string>
+    <string name="update_prompt_update_now">立即更新</string>
+</resources>
