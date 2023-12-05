@@ -5,10 +5,9 @@ import android.text.method.ScrollingMovementMethod
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import me.reezy.cosmo.update.R
+import androidx.fragment.app.FragmentActivity
 
-class UpdatePromptDialog(activity: AppCompatActivity, agent: UpdateAgent): Dialog(activity) {
+class UpdatePromptDialog(activity: FragmentActivity, agent: UpdateAgent): Dialog(activity) {
 
     init {
         setCancelable(false)

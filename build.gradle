@@ -2,24 +2,17 @@
 
 
 plugins {
-    id 'com.android.application' version '7.2.1' apply false
-    id 'com.android.library' version '7.2.1' apply false
-    id 'org.jetbrains.kotlin.android' version '1.7.0' apply false
-    id 'org.jetbrains.kotlin.jvm' version '1.7.0' apply false
-    id 'com.google.devtools.ksp' version '1.7.0-1.0.6' apply false
-}
+    alias(libs.plugins.agp.application) apply false
+    alias(libs.plugins.agp.library) apply false
 
-ext {
-    versions = [
-            sdk_compile : 32,
-            sdk_min     : 21,
-            sdk_target  : 31,
-            sdk_build   : "31.0.0",
-            java        : "1.8"
-    ]
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+//    alias(libs.plugins.kotlin.kapt) apply false
+//    alias(libs.plugins.kotlin.serialization) apply false
 
-    localRepoPath = cosmoRepoPath
-}
-task clean(type: Delete) {
-    delete rootProject.buildDir
+//    alias(libs.plugins.gradle.kotlin.dsl) apply false
+//    alias(libs.plugins.gradle.plugin.publish) apply false
+//    alias(libs.plugins.ksp) apply false
+//    alias(libs.plugins.booster) apply false
+
 }

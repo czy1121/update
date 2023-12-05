@@ -12,6 +12,9 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
     }
+    versionCatalogs {
+        libs { from files("$buildGradlePath/versions-cosmo.toml") }
+    }
 }
 rootProject.name = "update"
 include ':app'

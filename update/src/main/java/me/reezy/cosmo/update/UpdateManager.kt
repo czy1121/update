@@ -3,7 +3,7 @@ package me.reezy.cosmo.update
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import java.io.File
 
 object UpdateManager {
@@ -51,7 +51,7 @@ object UpdateManager {
         return this
     }
 
-    fun check(activity: AppCompatActivity, onPrompt: ((UpdateAgent) -> Unit)? = null, onResult: ((UpdateResult) -> Unit)? = null) {
+    fun check(activity: FragmentActivity, onPrompt: ((UpdateAgent) -> Unit)? = null, onResult: ((UpdateResult) -> Unit)? = null) {
 
         val now = System.currentTimeMillis()
         if (now - lastTime < 3000) {
