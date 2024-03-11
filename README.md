@@ -50,7 +50,9 @@ UpdateManager.setPrompter { activity, agent
 }
 
 // 自定义更新对话框
-UpdateManager.check(this)
+UpdateManager.check(this, onPrompt = { activity, agent ->
+    UpdatePromptDialog(activity, agent).show()
+})
 ```
 
 ``` kotlin

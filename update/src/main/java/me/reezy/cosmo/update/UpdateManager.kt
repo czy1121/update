@@ -11,7 +11,6 @@ import java.lang.ref.WeakReference
 
 object UpdateManager {
     private var lastTime: Long = 0
-    private var prompter: (FragmentActivity, UpdateAgent) -> Unit = { act, agent -> UpdatePromptDialog(act, agent).show() }
     private var downloadListenerFactory: (() -> DownloadListener)? = null
     private var checker: suspend () -> UpdateInfo = { UpdateInfo() }
     private var downloader: (suspend (DownloadTask) -> Unit) = { HttpUtil.download(it) }
@@ -45,11 +44,6 @@ object UpdateManager {
         return this
     }
 
-    fun setPrompter(value: (FragmentActivity, UpdateAgent) -> Unit): UpdateManager {
-        prompter = value
-        return this
-    }
-
     fun setDownloader(value: suspend (DownloadTask) -> Unit): UpdateManager {
         downloader = value
         return this
@@ -60,7 +54,7 @@ object UpdateManager {
         return this
     }
 
-    fun check(activity: FragmentActivity, onResult: ((UpdateResult) -> Unit)? = null) {
+    fun check(activity: FragmentActivity, onPrompt:((FragmentActivity, UpdateAgent) -> Unit)? = null, onResult: ((UpdateResult) -> Unit)? = null) {
 
         val now = System.currentTimeMillis()
         if (now - lastTime < 3000) {
@@ -87,7 +81,8 @@ object UpdateManager {
             onPrompt = { agent ->
                 val act = ref.get()
                 if (act != null && !act.isFinishing) {
-                    prompter.invoke(act, agent)
+                    val func = onPrompt ?: { ac, ag -> UpdatePromptDialog(ac, ag).show() }
+                    func(act, agent)
                 }
             },
             onResult = onResult ?: {
