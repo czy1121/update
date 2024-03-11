@@ -21,7 +21,7 @@ repositories {
     maven { url "https://gitee.com/ezy/repo/raw/cosmo/"}
 }
 dependencies {
-    implementation "me.reezy.cosmo:update:0.8.0"
+    implementation "me.reezy.cosmo:update:0.9.1"
 }
 ```
 
@@ -45,10 +45,12 @@ UpdateManager.check(this) {
 ```
 
 ``` kotlin
+UpdateManager.setPrompter { activity, agent
+    UpdatePromptDialog(activity, it).show()
+}
+
 // 自定义更新对话框
-UpdateManager.check(this, onPrompt = {
-    UpdatePromptDialog(this, it).show()
-})
+UpdateManager.check(this)
 ```
 
 ``` kotlin

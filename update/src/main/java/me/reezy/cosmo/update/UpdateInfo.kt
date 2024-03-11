@@ -28,6 +28,12 @@ data class UpdateInfo(
 
     // 新包哈希值
     val hash: String = "",
+
+    // 新版本包大小
+    val size: String = "",
+
+    // 新版本号
+    val version: String = ""
 ) {
 
     val isIgnored: Boolean get() = UpdateStore.ignoreHash == hash
@@ -46,6 +52,8 @@ data class UpdateInfo(
                     updateContent = o.optString("updateContent"),
                     url = o.optString("url"),
                     hash = o.optString("hash"),
+                    size = o.optString("size"),
+                    version = o.optString("version"),
                 )
             }
             return UpdateInfo()

@@ -1,13 +1,17 @@
 package me.reezy.cosmo.update
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentActivity
 import java.io.File
+import java.lang.ref.WeakReference
 
 object UpdateManager {
     private var lastTime: Long = 0
+    private var prompter: (FragmentActivity, UpdateAgent) -> Unit = { act, agent -> UpdatePromptDialog(act, agent).show() }
     private var downloadListenerFactory: (() -> DownloadListener)? = null
     private var checker: suspend () -> UpdateInfo = { UpdateInfo() }
     private var downloader: (suspend (DownloadTask) -> Unit) = { HttpUtil.download(it) }
@@ -41,6 +45,11 @@ object UpdateManager {
         return this
     }
 
+    fun setPrompter(value: (FragmentActivity, UpdateAgent) -> Unit): UpdateManager {
+        prompter = value
+        return this
+    }
+
     fun setDownloader(value: suspend (DownloadTask) -> Unit): UpdateManager {
         downloader = value
         return this
@@ -51,7 +60,7 @@ object UpdateManager {
         return this
     }
 
-    fun check(activity: FragmentActivity, onPrompt: ((UpdateAgent) -> Unit)? = null, onResult: ((UpdateResult) -> Unit)? = null) {
+    fun check(activity: FragmentActivity, onResult: ((UpdateResult) -> Unit)? = null) {
 
         val now = System.currentTimeMillis()
         if (now - lastTime < 3000) {
@@ -59,13 +68,15 @@ object UpdateManager {
         }
         lastTime = now
 
+        val ref = WeakReference(activity)
         val context = activity.applicationContext
         val cacheDir = File(activity.externalCacheDir, "update_cache")
 
         cacheDir.mkdirs()
 
 
-        UpdateExecutor(context, cacheDir,
+        UpdateExecutor(
+            context, cacheDir,
             log = log,
             check = checker,
             verifier = verifier,
@@ -73,9 +84,10 @@ object UpdateManager {
             createDownloadListener = downloadListenerFactory ?: {
                 NotificationDownloadListener(context)
             },
-            onPrompt = onPrompt ?: { agent ->
-                if (!activity.isFinishing) {
-                    UpdatePromptDialog(activity, agent).show()
+            onPrompt = { agent ->
+                val act = ref.get()
+                if (act != null && !act.isFinishing) {
+                    prompter.invoke(act, agent)
                 }
             },
             onResult = onResult ?: {
