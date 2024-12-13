@@ -66,7 +66,7 @@ object UpdateManager {
             downloadListenerFactory = downloadListenerFactory ?: { NotificationDownloadListener(context) },
             onPrompt = onPrompt ?: { UpdatePromptDialog(activity, it).show() },
             onResult = onResult ?: {
-                if (!it.isSilent) {
+                if (it.isError) {
                     Toast.makeText(context, it.getFullMessage(context), Toast.LENGTH_LONG).show()
                 }
             },

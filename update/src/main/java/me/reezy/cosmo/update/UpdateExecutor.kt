@@ -48,7 +48,7 @@ internal class UpdateExecutor(
             returnResult(ex)
         } catch (ex: Throwable) {
             ex.printStackTrace()
-            returnResult(UpdateResult(UpdateResult.UPDATE_UNKNOWN_EXCEPTION))
+            returnResult(UpdateResult(UpdateResult.UNKNOWN_EXCEPTION))
         }
     }
 

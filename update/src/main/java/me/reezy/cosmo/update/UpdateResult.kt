@@ -4,9 +4,6 @@ import android.content.Context
 
 
 class UpdateResult(val code: Int = 0, extra: String? = null): Throwable("[$code]") {
-
-    val isSilent: Boolean get() = code == UPDATE_NO_NEWER || code == UPDATE_IGNORED
-
     val isError: Boolean get() =  code >= 2000
 
     val extraMessage: String = if (extra == null) "" else "($extra)"
@@ -14,7 +11,6 @@ class UpdateResult(val code: Int = 0, extra: String? = null): Throwable("[$code]
     fun getFullMessage(context: Context): String = "[$code]${getCodeString(context)}$extraMessage"
 
     fun getCodeString(context: Context) = when(code) {
-        UPDATE_UNKNOWN_EXCEPTION -> context.getString(R.string.update_unknown_exception)
 
         UPDATE_NO_NEWER -> context.getString(R.string.update_no_newer)
         UPDATE_IGNORED -> context.getString(R.string.update_ignored)
@@ -34,12 +30,12 @@ class UpdateResult(val code: Int = 0, extra: String? = null): Throwable("[$code]
 
         INSTALL_VERIFY -> context.getString(R.string.update_install_verify)
 
+        UNKNOWN_EXCEPTION -> context.getString(R.string.update_unknown_exception)
+
         else -> ""
     }
 
     companion object {
-
-        const val UPDATE_UNKNOWN_EXCEPTION = 1000
 
         const val UPDATE_NO_NEWER = 1001
         const val UPDATE_IGNORED = 1002
@@ -58,6 +54,8 @@ class UpdateResult(val code: Int = 0, extra: String? = null): Throwable("[$code]
         const val DOWNLOAD_INCOMPLETE = 3009
 
         const val INSTALL_VERIFY = 4001
+
+        const val UNKNOWN_EXCEPTION = 5000
 
     }
 }
