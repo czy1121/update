@@ -1,13 +1,10 @@
 package me.reezy.cosmo.update
 
-import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentActivity
 import java.io.File
-import java.lang.ref.WeakReference
 
 object UpdateManager {
     private var lastTime: Long = 0
@@ -54,7 +51,7 @@ object UpdateManager {
         return this
     }
 
-    fun check(activity: FragmentActivity, onPrompt:((FragmentActivity, UpdateAgent) -> Unit)? = null, onResult: ((UpdateResult) -> Unit)? = null) {
+    fun check(activity: FragmentActivity, onPrompt: ((UpdateAgent) -> Unit)? = null, onResult: ((UpdateResult) -> Unit)? = null) {
 
         val now = System.currentTimeMillis()
         if (now - lastTime < 3000) {
@@ -62,7 +59,6 @@ object UpdateManager {
         }
         lastTime = now
 
-        val ref = WeakReference(activity)
         val context = activity.applicationContext
         val cacheDir = File(activity.externalCacheDir, "update_cache")
 
@@ -78,12 +74,8 @@ object UpdateManager {
             createDownloadListener = downloadListenerFactory ?: {
                 NotificationDownloadListener(context)
             },
-            onPrompt = { agent ->
-                val act = ref.get()
-                if (act != null && !act.isFinishing) {
-                    val func = onPrompt ?: { ac, ag -> UpdatePromptDialog(ac, ag).show() }
-                    func(act, agent)
-                }
+            onPrompt = onPrompt ?: {
+                UpdatePromptDialog(activity, it).show()
             },
             onResult = onResult ?: {
                 if (it.code != UpdateResult.UPDATE_NO_NEWER) {

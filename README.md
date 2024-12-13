@@ -21,7 +21,7 @@ repositories {
     maven { url "https://gitee.com/ezy/repo/raw/cosmo/"}
 }
 dependencies {
-    implementation "me.reezy.cosmo:update:0.9.1"
+    implementation "me.reezy.cosmo:update:0.10.0"
 }
 ```
 
@@ -39,18 +39,15 @@ UpdateManager.check(context)
 
 ``` kotlin
 // 在设置界面点击检查更新：默认无新版本时不会提示用户
-UpdateManager.check(this) {
+UpdateManager.check(activity) {
     Toast.makeText(this, it.getFullMessage(this), Toast.LENGTH_LONG).show()
 }
 ```
 
-``` kotlin
-UpdateManager.setPrompter { activity, agent
-    UpdatePromptDialog(activity, it).show()
-}
+``` kotlin 
 
 // 自定义更新对话框
-UpdateManager.check(this, onPrompt = { activity, agent ->
+UpdateManager.check(activity, onPrompt = { agent ->
     UpdatePromptDialog(activity, agent).show()
 })
 ```
