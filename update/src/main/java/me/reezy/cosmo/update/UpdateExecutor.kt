@@ -9,7 +9,7 @@ internal class UpdateExecutor(
     private val cacheDir: File?,
     private val log: (String) -> Unit,
     private val verifier: (File, String) -> Boolean,
-    private val createDownloadListener: () -> DownloadListener,
+    private val downloadListenerFactory: () -> DownloadListener,
     private val check: suspend () -> UpdateInfo,
     private val download: suspend (DownloadTask) -> Unit,
     private val onPrompt: (UpdateAgent) -> Unit,
@@ -27,7 +27,7 @@ internal class UpdateExecutor(
             val task = DownloadTask(info.url, cacheDir, info.hash)
 
             if (info.isShowNotification) {
-                task.addListener(createDownloadListener())
+                task.addListener(downloadListenerFactory())
             }
 
             when {
@@ -46,6 +46,9 @@ internal class UpdateExecutor(
             }
         } catch (ex: UpdateResult) {
             returnResult(ex)
+        } catch (ex: Throwable) {
+            ex.printStackTrace()
+            returnResult(UpdateResult(UpdateResult.UPDATE_UNKNOWN_EXCEPTION))
         }
     }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="update_unknown_exception">未知异常</string>
     <string name="update_ignored">该版本已经被忽略</string>
     <string name="update_cancelled">下载被取消</string>
     <string name="update_no_newer">已经是最新版了</string>

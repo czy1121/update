@@ -7,7 +7,6 @@ import androidx.fragment.app.FragmentActivity
 import java.io.File
 
 object UpdateManager {
-    private var lastTime: Long = 0
     private var downloadListenerFactory: (() -> DownloadListener)? = null
     private var checker: suspend () -> UpdateInfo = { UpdateInfo() }
     private var downloader: (suspend (DownloadTask) -> Unit) = { HttpUtil.download(it) }
@@ -53,17 +52,10 @@ object UpdateManager {
 
     fun check(activity: FragmentActivity, onPrompt: ((UpdateAgent) -> Unit)? = null, onResult: ((UpdateResult) -> Unit)? = null) {
 
-        val now = System.currentTimeMillis()
-        if (now - lastTime < 3000) {
-            return
-        }
-        lastTime = now
-
         val context = activity.applicationContext
         val cacheDir = File(activity.externalCacheDir, "update_cache")
 
         cacheDir.mkdirs()
-
 
         UpdateExecutor(
             context, cacheDir,
@@ -71,15 +63,11 @@ object UpdateManager {
             check = checker,
             verifier = verifier,
             download = downloader,
-            createDownloadListener = downloadListenerFactory ?: {
-                NotificationDownloadListener(context)
-            },
-            onPrompt = onPrompt ?: {
-                UpdatePromptDialog(activity, it).show()
-            },
+            downloadListenerFactory = downloadListenerFactory ?: { NotificationDownloadListener(context) },
+            onPrompt = onPrompt ?: { UpdatePromptDialog(activity, it).show() },
             onResult = onResult ?: {
-                if (it.code != UpdateResult.UPDATE_NO_NEWER) {
-                    Toast.makeText(activity, it.getFullMessage(context), Toast.LENGTH_LONG).show()
+                if (!it.isSilent) {
+                    Toast.makeText(context, it.getFullMessage(context), Toast.LENGTH_LONG).show()
                 }
             },
         ).execute()

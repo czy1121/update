@@ -1,19 +1,21 @@
 package me.reezy.cosmo.update
  
 import android.content.Context
-import me.reezy.cosmo.update.R
 
 
 class UpdateResult(val code: Int = 0, extra: String? = null): Throwable("[$code]") {
 
+    val isSilent: Boolean get() = code == UPDATE_NO_NEWER || code == UPDATE_IGNORED
 
-    val isError: Boolean = code >= 2000
+    val isError: Boolean get() =  code >= 2000
 
     val extraMessage: String = if (extra == null) "" else "($extra)"
 
     fun getFullMessage(context: Context): String = "[$code]${getCodeString(context)}$extraMessage"
 
     fun getCodeString(context: Context) = when(code) {
+        UPDATE_UNKNOWN_EXCEPTION -> context.getString(R.string.update_unknown_exception)
+
         UPDATE_NO_NEWER -> context.getString(R.string.update_no_newer)
         UPDATE_IGNORED -> context.getString(R.string.update_ignored)
         UPDATE_CANCELLED -> context.getString(R.string.update_cancelled)
@@ -36,6 +38,8 @@ class UpdateResult(val code: Int = 0, extra: String? = null): Throwable("[$code]
     }
 
     companion object {
+
+        const val UPDATE_UNKNOWN_EXCEPTION = 1000
 
         const val UPDATE_NO_NEWER = 1001
         const val UPDATE_IGNORED = 1002
